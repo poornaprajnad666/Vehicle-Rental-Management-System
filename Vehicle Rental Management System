@@ -1,0 +1,185 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+const int total_categories = 3;
+enum CATEGORY {DELUXE, SUV, LUXURY};
+const char* category_name[] = {"Deluxe Vehicle", "Sport-Utility Vehicle", "Luxury Car"};
+const int category_size[] = {3, 3, 3};
+
+struct Car
+{
+    char make[16];
+    char model[16];
+    char year[6];
+    int price;
+};
+
+const struct Car DELUXE_MODELS[] =
+{
+    {"Maruti Suzuki", "Swift", "2011", 4000},
+    {"Maruti Suzuki", "Baleno", "2012", 5000},
+    {"Volkswagen", "Polo", "2011", 15000}
+};
+
+const struct Car SUV_MODELS[] =
+{
+    {"Toyota", "Fortuner", "2010", 9000},
+    {"Ford", "Endeavour", "2009", 12000},
+    {"Hundai", "Creta", "2011", 10000}
+};
+
+const struct Car LUXURY_MODELS[] =
+{
+    {"Mercedes", "E350 Sedan", "2012", 9000},
+    {"BMW", "640i Convertible", "2012", 12000},
+    {"Audi", "A5 Coupe", "2012", 10000}
+};
+
+const struct Car* MODEL_CLASSES[] = {DELUXE_MODELS, SUV_MODELS, LUXURY_MODELS};
+
+struct Customer
+{
+    char name[32];
+    int age, daysOfRental;
+    char phone_number[16];
+    char address[3][32];      /* three lines of 32 chars each */
+    struct Car* vehicle;
+};
+
+/* function prototypes */
+void printBanner();
+void getCustomer(struct Customer* customer);
+enum CATEGORY getType();
+const struct Car* getCar(enum CATEGORY type);
+void printReceipt(struct Customer* customer);
+void strTrim(char* s);
+
+
+int main()
+{
+    struct Customer customer;
+    enum CATEGORY type;
+
+    printBanner();
+    getCustomer(&customer);
+    type = getType();
+    customer.vehicle = (struct Car*) getCar(type);
+    printReceipt(&customer);
+
+    return 0;
+}
+
+void printBanner()
+{
+
+    printf("\n CAR RENTAL APPLICATION \n");
+    printf("\n ----------------------- \n");
+}
+
+void getCustomer(struct Customer* customer)
+{
+    char ndays[4], age[4];
+
+    printf("\nEnter the number of days you want to rent the car: ");
+    fgets(ndays, 4, stdin);
+    sscanf(ndays, "%d", &(customer->daysOfRental));
+    printf ("Enter Your Name: ");
+    fgets(customer->name, 32, stdin);
+    strTrim(customer->name);
+    printf("Enter your age: ");
+    fgets(age, 4, stdin);
+    sscanf(age, "%d", &(customer->age));
+    printf("Enter your phone number: ");
+    fgets(customer->phone_number, 16, stdin);
+    strTrim(customer->phone_number);
+    printf("Enter your street address: ");
+    fgets(customer->address[0], 32, stdin);
+    strTrim(customer->address[0]);
+    printf("Enter your unit or apartment: ");
+    fgets(customer->address[1], 32, stdin);
+    strTrim(customer->address[1]);
+    printf("Enter your city and country or state/province: ");
+    fgets(customer->address[2], 32, stdin);
+    strTrim(customer->address[2]);
+}
+
+enum CATEGORY getType()
+{
+    char option[4];
+    int i, car_type;
+
+    do
+    {
+        for (i = 0; i < total_categories; i++ )
+        {
+            printf("\nPress %d for %ss \n", i + 1, category_name[i]);
+        }
+
+        printf("\n ---------------------------- \n");
+        printf("\n Press any Option: \n");
+        fgets(option, 4, stdin);
+        sscanf(option, "%d", &car_type);
+    }
+    while ((car_type < 1) || (car_type > 3));
+
+    return (enum CATEGORY) car_type - 1;
+}
+
+const struct Car* getCar(enum CATEGORY type)
+{
+    const struct Car* car_class = MODEL_CLASSES[type];
+    const char* const type_name = category_name[type];
+    char query[4];
+    char model_number[4];
+    int i, model;
+    const int available_models  = category_size[type];
+
+    do
+    {
+        printf("There are %d %ss to choose from: \n", available_models, type_name);
+        printf("\nVehicles Available are \n");
+        for (i = 0; i < available_models; i++)
+        {
+            printf("\t%d: %s %s\n", i + 1, car_class[i].make, car_class[i].model);
+        }
+        printf("\n\n ----------------------------- \n");
+        printf("Enter the number of the car model you want: ");
+        fgets(model_number, 4, stdin);
+        printf("You entered: %s\n", model_number);
+        sscanf(model_number, "%d", &model);
+        model--;
+        printf("\n You have selected %s %s %s | Cost %drs per day \n",
+               car_class[model].year, car_class[model].make,
+               car_class[model].model, car_class[model].price);
+        printf("Is this correct?");
+        fgets(query, 4, stdin);
+    }
+    while (toupper(query[0]) != 'Y');
+    return &car_class[model];
+}
+
+void printReceipt(struct Customer* customer)
+{
+    printf("\n\n ----------------------------- \n");
+    printf("\n\n Rental Agreement \n");
+    printf("\n\n ----------------------------- \n");
+    printf("\n\n\nI, %s, hereby agree to pay %drs for the rental of a\n",
+           customer->name, customer->vehicle->price * customer->daysOfRental);
+    printf("%s %s %s for a period of %d days.\n",
+           customer->vehicle->year, customer->vehicle->make,
+           customer->vehicle->model, customer->daysOfRental);
+}
+
+void strTrim(char* s)
+{
+    int i = 1;
+    int len = strlen(s);
+
+    while (isspace(s[len - i]))
+    {
+        s[len - i] = '\00';
+        i++;
+    }
+}
